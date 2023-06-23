@@ -1,8 +1,6 @@
 package com.example.todoapplication;
 
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -12,17 +10,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.concurrent.ExecutorService;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RecyclerViewInterface {
     RecyclerView recyclerView;
     Button button;
-    EditText Title , Note;
+    EditText Title, Note;
     Context context = MainActivity.this;
+    RecyclerViewInterface recyclerViewInterface;
 
     ImageView img;
     Runnable runnable;
@@ -30,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     RecyclerAdapter adapter;
 
     DatabaseModel dm = new DatabaseModel(context);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,43 +41,38 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                img.animate().scaleX(4f).scaleY(4f).alpha(0f).setDuration(1000)
-                        .withEndAction(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                img.setScaleX(1f);
-                                img.setScaleY(1f);
-                                img.setAlpha(1f);
-                                Log.i(String.valueOf(context), "Inside runnable");
-
-                            }
-
-                        });
+                img.animate().scaleX(3f).scaleY(3f).alpha(0f).setDuration(800);
+                img.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        img.setScaleX(1f);
+                        img.setScaleY(1f);
+                        img.setAlpha(1f);
+                    }
+                }, 1010);
             }
 
         };
-        adapter = new RecyclerAdapter(context , dm.get_notes());
+        adapter = new RecyclerAdapter(context, dm.get_notes() , recyclerViewInterface);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         recyclerView.setAdapter(adapter);
 
 
-
-        button.setOnClickListener(new View.OnClickListener(){
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 runnable.run();
-                NoteModel nm = new NoteModel(Title.getText().toString() , Note.getText().toString() , -1);
-                boolean x = dm.add_note(nm);
-                adapter = new RecyclerAdapter(context , dm.get_notes());
-                recyclerView.setAdapter(adapter);
-                Log.i("Main" ,Boolean.toString(x));
-                Title.setText("");
-                Note.setText("");
+                if (!Title.getText().toString().equals("") && !Note.getText().toString().equals("")) {
+                    NoteModel nm = new NoteModel(Title.getText().toString(), Note.getText().toString(), -1);
+                    boolean x = dm.add_note(nm);
+                    adapter = new RecyclerAdapter(context, dm.get_notes(), recyclerViewInterface);
+                    recyclerView.setAdapter(adapter);
+                    Log.i("Main", Boolean.toString(x));
+                    Title.setText("");
+                    Note.setText("");
+                }
             }
         });
-
-
 
 
 
@@ -88,6 +80,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-
+    @Override
+    public void onItemClick(int position) {
+        DatabaseModel db = new DatabaseModel(context);
+        db.get_notes().remove(position);
+    }
 }
+
